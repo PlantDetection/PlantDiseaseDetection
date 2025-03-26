@@ -3,11 +3,16 @@ import numpy as np
 import tensorflow as tf
 from PIL import Image
 
-# Load the TFLite model
-def load_tflite_model(model_path):
+def load_tflite_model():
+    model_path = os.path.join(os.path.dirname(__file__), "model.tflite")
+    
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"❌ Model file not found at {model_path}")
+    
     interpreter = tf.lite.Interpreter(model_path=model_path)
     interpreter.allocate_tensors()
     return interpreter
+
 
 # Define class names
 class_names = [

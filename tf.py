@@ -30,9 +30,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 @st.cache_resource
-def load_tflite_model():
-    model_path = os.path.join(os.path.dirname(__file__), "model.tflite")
-
+@st.cache_resource
+def load_tflite_model(model_path):
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"❌ Model file not found at {model_path}")
 
@@ -43,7 +42,8 @@ def load_tflite_model():
     except Exception as e:
         raise RuntimeError(f"❌ Failed to load model: {e}")
 
-interpreter = load_tflite_model()
+model_path = "model.tflite"  # Ensure correct relative path
+interpreter = load_tflite_model(model_path)
 
 
 # Define class names
@@ -228,13 +228,31 @@ disease_resolutions = {
         "NPK": "14-7-14",
         "Pesticide": "Chlorothalonil-based fungicide",
         "Tips": ["Improve soil drainage.", "Remove infected debris.", "Ensure good air circulation."]
+    },
+    "Eggplant_Flea_Beetles": {
+        "Fertilizer": "Balanced Organic Fertilizer",
+        "NPK": "10-10-10",
+        "Pesticide": "Neem oil or Pyrethrin-based insecticide",
+        "Tips": ["Use floating row covers to prevent infestation.", "Encourage natural predators like ladybugs.", "Apply neem oil regularly."]
+    },
+    "Eggplant_Powdery Mildew": {
+        "Fertilizer": "Sulfur-based Fertilizer",
+        "NPK": "5-10-5",
+        "Pesticide": "Sulfur or Potassium bicarbonate-based fungicide",
+        "Tips": ["Improve air circulation around plants.", "Water plants at the base to keep foliage dry.", "Remove infected leaves promptly."]
+    },
+    "Tomato_Spider_mites Two-spotted_spider_mite": {
+        "Fertilizer": "Compost Tea",
+        "NPK": "4-6-8",
+        "Pesticide": "Neem oil or insecticidal soap",
+        "Tips": ["Spray plants with water to dislodge mites.", "Introduce predatory mites as biological control.", "Maintain high humidity to deter spider mites."]
     }
 }
 
 def predict_image_tflite(image_file):
     img = Image.open(image_file).convert("RGB").resize((160, 160))
-    img_array = np.array(img, dtype=np.float32) / 255.0  # Normalize input
-    img_array = np.expand_dims(img_array, axis=0)
+    img_array = np.array(img, dtype=np.float32)  # Do not normalize
+    img_array = np.expand_dims(img_array, axis=0)  # Ensure batch dimension
 
     # Get model input/output details
     input_index = interpreter.get_input_details()[0]['index']
@@ -250,6 +268,8 @@ def predict_image_tflite(image_file):
     pred_confidence = f"{round(100 * np.max(output_data[0]), 2)}%"
 
     return pred_class, pred_confidence
+
+
 
 
 # Streamlit UI
